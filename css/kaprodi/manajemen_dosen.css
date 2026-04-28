@@ -1,0 +1,40 @@
+.dosen-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dosen-cell img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.dosen-cell strong {
+    display: block;
+    font-size: 14px;
+}
+
+.dosen-cell small {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.badge-success { background: #dcfce7; color: #15803d; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+
+.btn-outline-primary {
+    border: 1px solid var(--accent-color);
+    background: transparent;
+    color: var(--accent-color);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-outline-primary:hover {
+    background: var(--accent-color);
+    color: white;
+}

@@ -1,0 +1,29 @@
+.btn-warning {
+    background: #f59e0b;
+    color: white;
+    padding: 10px 20px;
+}
+
+.cpl-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.cpl-item {
+    padding: 15px;
+    background: #f8fafc;
+    border-left: 4px solid var(--accent-color);
+    border-radius: 4px;
+}
+
+.cpl-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+
+.cpl-item p {
+    font-size: 14px;
+    line-height: 1.5;
+}

@@ -1,0 +1,14 @@
+.filter-card { padding: 15px 20px; margin-bottom: 20px; }
+.filter-grid { display: grid; grid-template-columns: 1fr 1fr 2fr auto; gap: 15px; }
+.form-control-sm { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; width: 100%; }
+.search-box { position: relative; }
+.btn-sm { padding: 8px 15px; font-size: 13px; }
+
+.table-actions { display: flex; gap: 10px; }
+.btn-icon { background: none; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+.btn-icon:hover { color: var(--primary-color); }
+.text-danger:hover { color: #ef4444; }
+
+@media (max-width: 768px) {
+    .filter-grid { grid-template-columns: 1fr; }
+}

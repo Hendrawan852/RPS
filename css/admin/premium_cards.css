@@ -1,0 +1,208 @@
+/* Premium Feature & Pricing Cards - Modern Grayscale 2026 */
+
+:root {
+    --p-glass-bg: #ffffff;
+    --p-glass-border: #e2e8f0;
+    --p-indigo: #1f2937;
+    --p-fuchsia: #4b5563;
+    --p-gradient-1: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+    --p-gradient-2: linear-gradient(135deg, #374151 0%, #6b7280 100%);
+    --p-glow: 0 0 20px rgba(31, 41, 55, 0.05);
+}
+
+
+.premium-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.premium-card {
+    position: relative;
+    background: var(--p-glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid var(--p-glass-border);
+    padding: 35px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Gradient Header Accent */
+.premium-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--p-gradient-1);
+    z-index: 2;
+}
+
+.premium-card.popular::after {
+    background: var(--p-gradient-2);
+}
+
+/* Glassmorphism Shine Effect */
+.premium-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.premium-card:hover::before {
+    opacity: 1;
+}
+
+/* Hover Effects */
+.premium-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.04), var(--p-glow);
+    border-color: var(--p-indigo);
+}
+
+.premium-card.popular:hover {
+    box-shadow: 0 20px 40px rgba(0,0,0,0.04), 0 0 20px rgba(31, 41, 55, 0.1);
+    border-color: var(--p-indigo);
+}
+
+/* Stylish Large Icons */
+.premium-icon {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    transition: transform 0.4s;
+}
+
+.premium-card:hover .premium-icon {
+    transform: rotate(10deg) scale(1.1);
+}
+
+.icon-indigo { color: var(--p-indigo); }
+.icon-fuchsia { color: var(--p-fuchsia); }
+.icon-orange { color: #fb923c; }
+
+/* Popular Badge */
+.popular-badge {
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: var(--primary-color);
+    color: white;
+    padding: 6px 40px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 3;
+}
+
+/* Typography Hierarchy */
+.premium-card h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+}
+
+.premium-card p {
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.feature-list {
+    list-style: none;
+    margin-bottom: 30px;
+}
+
+.feature-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #475569;
+}
+
+.feature-list li i {
+    color: #10b981;
+    font-size: 16px;
+}
+
+.premium-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-indigo-outline {
+    border: 2px solid var(--p-indigo);
+    color: var(--p-indigo);
+}
+
+.btn-indigo-outline:hover {
+    background: var(--p-indigo);
+    color: white;
+}
+
+.btn-fuchsia-solid {
+    background: var(--p-gradient-2);
+    color: white;
+    border: none;
+}
+
+.btn-fuchsia-solid:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 10px 20px rgba(244, 63, 94, 0.2);
+}
+
+/* Stat Cards Upgrade - Dashboard Specific */
+.stat-card.premium {
+    background: var(--p-glass-bg);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    border: 1px solid var(--p-glass-border);
+    transition: all 0.3s;
+}
+
+.stat-card.premium:hover {
+    transform: translateY(-8px);
+    border-color: var(--p-indigo);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+}
+
+.stat-card.premium .stat-icon {
+    width: 65px;
+    height: 65px;
+    border-radius: 16px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}

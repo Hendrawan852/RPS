@@ -1,0 +1,59 @@
+.header-actions .btn-success {
+    background: #10b981;
+    color: white;
+    padding: 10px 20px;
+}
+
+.filter-card {
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.badge-submitted { background: #e0f2fe; color: #0369a1; }
+.badge-review { background: #fef3c7; color: #92400e; }
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action.primary { background: #e0e7ff; color: #4338ca; }
+.btn-action.success { background: #dcfce7; color: #15803d; }
+.btn-action.danger { background: #fee2e2; color: #b91c1c; }
+
+.btn-action:hover {
+    transform: scale(1.1);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    padding: 0 20px;
+}

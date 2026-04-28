@@ -1,0 +1,59 @@
+.profil-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 30px;
+}
+
+.profil-main {
+    text-align: center;
+}
+
+.avatar-edit {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    margin: 0 auto 20px;
+}
+
+.avatar-edit img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid white;
+    box-shadow: var(--shadow-sm);
+}
+
+.edit-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 32px;
+    height: 32px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.profil-main h3 { margin-bottom: 5px; }
+.profil-main p { color: var(--text-muted); font-size: 13px; margin-bottom: 25px; }
+
+.signature-box {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+}
+
+.signature-box span { display: block; font-size: 12px; font-weight: 600; margin-bottom: 15px; }
+.sig-placeholder { height: 80px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; font-style: italic; }
+.btn-sig { width: 100%; margin-top: 15px; padding: 10px; border: 1px solid var(--accent-color); color: var(--accent-color); background: transparent; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.profil-form .form-group { margin-bottom: 20px; }
+
+@media (max-width: 992px) {
+    .profil-layout { grid-template-columns: 1fr; }
+}

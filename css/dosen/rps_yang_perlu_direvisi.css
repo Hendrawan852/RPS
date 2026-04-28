@@ -1,0 +1,49 @@
+.revision-card {
+    border-left: 5px solid #ef4444;
+}
+
+.revision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.mk-info h3 { font-size: 20px; margin: 8px 0 3px; }
+.mk-info p { color: var(--text-muted); font-size: 13px; }
+
+.revision-note {
+    background: #fef2f2;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.note-title {
+    font-weight: 700;
+    color: #991b1b;
+    font-size: 13px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.revision-note p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #7f1d1d;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+.revision-note small {
+    display: block;
+    color: #991b1b;
+    opacity: 0.7;
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .revision-header { flex-direction: column; gap: 20px; }
+    .btn { width: 100%; justify-content: center; }
+}

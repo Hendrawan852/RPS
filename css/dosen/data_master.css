@@ -1,0 +1,4 @@
+.info-list { display: flex; flex-direction: column; gap: 15px; }
+.info-item { padding: 15px; background: #f8fafc; border-left: 4px solid var(--primary-color); border-radius: 4px; }
+.info-item strong { display: block; font-size: 13px; color: var(--primary-color); margin-bottom: 5px; }
+.info-item p { font-size: 14px; line-height: 1.5; color: var(--text-main); }

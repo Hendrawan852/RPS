@@ -1,0 +1,14 @@
+.badge-approved { background: #dcfce7; color: #15803d; }
+.badge-archived { background: #f1f5f9; color: #475569; }
+
+.search-box input {
+    width: 250px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.actions { display: flex; gap: 10px; }
+.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+.btn-icon:hover { color: var(--accent-color); }

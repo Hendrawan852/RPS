@@ -1,0 +1,21 @@
+.profil-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
+.side-profile { text-align: center; }
+.avatar-large { width: 100px; height: 100px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700; margin: 0 auto 20px; }
+.avatar-section h3 { font-size: 18px; margin-bottom: 5px; }
+.avatar-section p { font-size: 13px; color: var(--text-muted); margin-bottom: 30px; }
+
+.signature-section { text-align: left; border-top: 1px solid var(--border-color); padding-top: 25px; }
+.signature-section label { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; display: block; }
+.signature-preview { height: 120px; background: #f8fafc; border: 2px dashed var(--border-color); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); margin-bottom: 15px; }
+.signature-preview p { font-size: 12px; font-style: italic; }
+
+.btn-outline-primary { width: 100%; padding: 10px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-outline-primary:hover { background: var(--primary-color); color: white; }
+
+.p-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.p-form .form-group { margin-bottom: 20px; }
+.btn-block { width: 100%; }
+
+@media (max-width: 992px) {
+    .profil-grid { grid-template-columns: 1fr; }
+}
