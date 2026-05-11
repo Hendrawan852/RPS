@@ -25,17 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE mata_kuliah SET prodi_id = ?, dosen_id = ? WHERE id = ?")->execute([$prodi_id, $dosen_id, $mk_id]);
             $msg = "Mata kuliah & dosen berhasil dipetakan.";
         } elseif ($action === 'update_dosen_mk') {
-            $mk_id = $_POST['mk_id'];
-            $dosen_id = $_POST['dosen_id'] ?: null;
-            // Update dosen_id and ensure the course is assigned to this prodi if it was unassigned
-            $stmt = $pdo->prepare("UPDATE mata_kuliah SET dosen_id = ?, prodi_id = ? WHERE id = ? AND (prodi_id = ? OR prodi_id IS NULL)");
-            $stmt->execute([$dosen_id, $prodi_id, $mk_id, $prodi_id]);
-            
-            if ($stmt->rowCount() > 0) {
-                $msg = "Update pengampu berhasil.";
-            } else {
-                $error = "Gagal memperbarui pengampu. Pastikan Mata Kuliah ini milik Program Studi Anda.";
+            $assignments = $_POST['assignments'] ?? [];
+            foreach ($assignments as $mk_id => $dosen_id) {
+                $d_id = $dosen_id ?: null;
+                $stmt = $pdo->prepare("UPDATE mata_kuliah SET dosen_id = ?, prodi_id = ? WHERE id = ? AND (prodi_id = ? OR prodi_id IS NULL)");
+                $stmt->execute([$d_id, $prodi_id, $mk_id, $prodi_id]);
             }
+            $msg = "Semua perubahan pengampu berhasil disimpan.";
         } elseif ($action === 'lepas_mk') {
             $id = $_POST['id'];
             $pdo->prepare("UPDATE mata_kuliah SET prodi_id = NULL, dosen_id = NULL WHERE id = ?")->execute([$id]);
@@ -168,13 +164,26 @@ function getMappingData($mk_id, $pdo) {
     }
 
     .select-modern {
-        padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-soft);
-        font-size: 13px; color: var(--text-dark); outline: none; min-width: 180px; cursor: pointer;
+        padding: 10px 14px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg-soft);
+        font-size: 13.5px; color: var(--text-dark); outline: none; min-width: 220px; cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
     }
 
-    .select-modern:focus { border-color: var(--primary); }
-    .select-modern.is-selected { border-color: var(--success); background: #f0fdf4; color: #065f46; font-weight: 600; }
-    .select-modern.is-empty { border-style: dashed; border-color: #cbd5e1; color: #64748b; }
+    .select-modern:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+    .select-modern.is-selected { border-color: #10b981; background-color: #f0fdf4; color: #065f46; font-weight: 600; }
+    .select-modern.is-empty { border-color: #f59e0b; background-color: #fffbeb; color: #92400e; border-style: solid; }
+    .select-modern.is-changed { border-color: #4f46e5; border-style: dashed; animation: pulse-border 2s infinite; }
+
+    @keyframes pulse-border {
+        0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+    }
 
     .status-indicator {
         display: flex;
@@ -183,11 +192,15 @@ function getMappingData($mk_id, $pdo) {
         font-size: 10px;
         font-weight: 800;
         text-transform: uppercase;
-        margin-top: 6px;
+        margin-top: 8px;
         letter-spacing: 0.5px;
+        padding: 2px 8px;
+        border-radius: 6px;
+        width: fit-content;
     }
-    .status-selected { color: var(--success); }
-    .status-pending { color: var(--secondary); opacity: 0.7; }
+    .status-selected { background: #d1fae5; color: #065f46; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-changed { background: #e0e7ff; color: #4338ca; }
 
     .badge-tag { padding: 4px 10px; border-radius: 50px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; border: 1px solid transparent; }
     .tag-blue { background: #eff6ff; color: #1e40af; border-color: #dbeafe; }
@@ -261,6 +274,48 @@ function getMappingData($mk_id, $pdo) {
         background: #dcfce7; color: #166534; padding: 12px 20px; border-radius: 12px; 
         margin-bottom: 20px; font-size: 13.5px; display: flex; align-items: center; gap: 10px;
     }
+    .btn-save-pengampu {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #d1fae5;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-save-pengampu:hover {
+        background: #10b981;
+        color: white;
+    }
+    .btn-save-pengampu:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .btn-bulk-save {
+        background: #10b981;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.3s;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+    .btn-bulk-save:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+    }
+    .btn-bulk-save:active { transform: translateY(0); }
 </style>
 
 <div class="page-header">
@@ -328,10 +383,17 @@ function getMappingData($mk_id, $pdo) {
 
 <div id="mk" class="tab-content">
 <div class="card-modern">
-    <div class="card-header-modern">
-        <i class="fas fa-book" style="color: var(--success);"></i>
-        <h3>Mata Kuliah & Penugasan</h3>
+    <div class="card-header-modern" style="justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fas fa-book" style="color: var(--success);"></i>
+            <h3>Mata Kuliah & Penugasan</h3>
+        </div>
+        <div style="font-size: 12px; color: var(--secondary); font-style: italic;">
+            <i class="fas fa-info-circle"></i> Ubah pengampu lalu klik Simpan di bawah
+        </div>
     </div>
+    <form id="bulkUpdateForm" method="POST">
+        <input type="hidden" name="action" value="update_dosen_mk">
     <table class="table-modern">
         <thead>
             <tr>
@@ -362,16 +424,12 @@ function getMappingData($mk_id, $pdo) {
                     <td><span class="badge-tag tag-slate"><?php echo htmlspecialchars($mk['tahun_ajaran'] ?? '2024/2025'); ?></span></td>
                     <td>
                         <div style="display: flex; flex-direction: column;">
-                            <form method="POST">
-                                <input type="hidden" name="mk_id" value="<?php echo $mk['id']; ?>">
-                                <input type="hidden" name="action" value="update_dosen_mk">
-                                <select name="dosen_id" class="select-modern <?php echo $mk['dosen_id'] ? 'is-selected' : 'is-empty'; ?>" onchange="this.form.submit()" style="min-width: 180px;">
-                                    <option value="">-- Pilih Dosen --</option>
-                                    <?php foreach ($dosens as $d): ?>
-                                        <option value="<?php echo $d['id']; ?>" <?php echo ((int)($mk['dosen_id'] ?? 0) === (int)$d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['nama']); ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </form>
+                            <select name="assignments[<?php echo $mk['id']; ?>]" class="select-modern <?php echo $mk['dosen_id'] ? 'is-selected' : 'is-empty'; ?>" style="min-width: 220px;">
+                                <option value="">-- Pilih Dosen --</option>
+                                <?php foreach ($dosens as $d): ?>
+                                    <option value="<?php echo $d['id']; ?>" <?php echo ((int)($mk['dosen_id'] ?? 0) === (int)$d['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($d['nama']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                             <?php if ($mk['dosen_id']): ?>
                                 <div class="status-indicator status-selected">
                                     <i class="fas fa-check-circle"></i> Terpilih
@@ -416,6 +474,16 @@ function getMappingData($mk_id, $pdo) {
             <?php endif; ?>
         </tbody>
     </table>
+    
+    <div style="padding: 24px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 15px; align-items: center;">
+        <div id="unsavedCount" style="display: none; font-size: 13px; color: #4f46e5; font-weight: 600;">
+            <i class="fas fa-edit"></i> <span id="change-count">0</span> perubahan belum disimpan
+        </div>
+        <button type="submit" class="btn-bulk-save" style="min-width: 150px;">
+            <i class="fas fa-save"></i> Simpan
+        </button>
+    </div>
+    </form>
 </div>
 </div>
 
@@ -559,6 +627,105 @@ function openInfo(type, data) {
     openModal('modalInfo');
 }
 
+// Track changes
+const updateIndicators = (select) => {
+    const td = select.closest('td');
+    const statusIndicator = td.querySelector('.status-indicator');
+    const isInitialValue = select.value === select.dataset.initial;
+    
+    // Remove all states
+    select.classList.remove('is-selected', 'is-empty', 'is-changed');
+    
+    if (!isInitialValue) {
+        select.classList.add('is-changed');
+        if (statusIndicator) {
+            statusIndicator.className = 'status-indicator status-changed';
+            statusIndicator.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Belum Disimpan';
+        }
+    } else if (select.value) {
+        select.classList.add('is-selected');
+        if (statusIndicator) {
+            statusIndicator.className = 'status-indicator status-selected';
+            statusIndicator.innerHTML = '<i class="fas fa-check-circle"></i> Terpilih';
+        }
+    } else {
+        select.classList.add('is-empty');
+        if (statusIndicator) {
+            statusIndicator.className = 'status-indicator status-pending';
+            statusIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Belum Dipilih';
+        }
+    }
+
+    // Update global unsaved count
+    const changedCount = Array.from(document.querySelectorAll('select[name^="assignments"]'))
+        .filter(s => s.value !== s.dataset.initial).length;
+    
+    const countDisplay = document.getElementById('unsavedCount');
+    if (changedCount > 0) {
+        countDisplay.style.display = 'block';
+        document.getElementById('change-count').innerText = changedCount;
+    } else {
+        countDisplay.style.display = 'none';
+    }
+};
+
+// Initialize initial values and listeners
+document.querySelectorAll('select[name^="assignments"]').forEach(select => {
+    select.dataset.initial = select.value;
+    select.addEventListener('change', () => updateIndicators(select));
+});
+
+// AJAX logic for bulk updating dosen pengampu
+const bulkForm = document.getElementById('bulkUpdateForm');
+if (bulkForm) {
+    bulkForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = this.querySelector('.btn-bulk-save');
+        const originalHtml = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+        
+        const formData = new FormData(this);
+        
+        fetch('data_master.php', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Berhasil!';
+            btn.style.background = '#059669';
+            
+            // Update initial values and indicators
+            this.querySelectorAll('select[name^="assignments"]').forEach(select => {
+                select.dataset.initial = select.value;
+                updateIndicators(select);
+            });
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                btn.style.background = '';
+            }, 3000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Gagal';
+            btn.style.background = '#ef4444';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                btn.style.background = '';
+            }, 3000);
+        });
+    });
+}
+
 // Tab switching logic
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -567,7 +734,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         
         this.classList.add('active');
         document.getElementById(this.dataset.tab).classList.add('active');
+        
+        // Save active tab to localStorage
+        localStorage.setItem('activeTab_dataMaster', this.dataset.tab);
     });
+});
+
+// Restore active tab on load
+window.addEventListener('load', () => {
+    const activeTab = localStorage.getItem('activeTab_dataMaster');
+    if (activeTab) {
+        const btn = document.querySelector(`.tab-btn[data-tab="${activeTab}"]`);
+        if (btn) btn.click();
+    }
 });
 </script>
 

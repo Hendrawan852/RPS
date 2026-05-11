@@ -2,7 +2,7 @@
 require_once '../../config/database.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Kaprodi') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Kaprodi', 'Admin'])) {
     exit('Unauthorized');
 }
 

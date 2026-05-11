@@ -3,7 +3,10 @@ require_once '../config/database.php';
 include 'includes/header.php';
 include 'includes/sidebar.php';
 
-$prodi_id = $_SESSION['prodi_id'];
+// Always read prodi_id fresh from the database to prevent stale session issues
+$stmt = $pdo->prepare("SELECT prodi_id FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$prodi_id = $stmt->fetchColumn();
 
 // Fetch actual stats for this prodi
 $stmt = $pdo->prepare("SELECT COUNT(*) as total_mk FROM mata_kuliah WHERE prodi_id = ?");
