@@ -1,0 +1,23 @@
+Table: cpmk
+  - id (int)
+  - kode_cpmk (varchar(20))
+  - deskripsi (text)
+  - created_at (timestamp)
+Table: mk_cpmk
+  - id (int)
+  - mk_id (int)
+  - cpmk_id (int)
+Table: sub_cpmk
+  - id (int)
+  - mk_id (int)
+  - minggu (varchar(50))
+  - sub_cpmk (text)
+  - indikator (text)
+  - bentuk_asesmen (text)
+  - materi (text)
+  - bahan_kajian (text)
+  - metode (text)
+  - setting (varchar(50))
+  - bobot (int)
+  - waktu (varchar(50))
+  - created_at (timestamp)

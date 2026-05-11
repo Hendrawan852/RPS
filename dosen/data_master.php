@@ -69,14 +69,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Exception $e) {
                 $error = "Gagal mengajukan: " . $e->getMessage();
             }
-        } elseif ($_POST['action'] === 'hapus_sub_cpmk') {
+        } elseif ($_POST['action'] === 'save_bobot_penilaian') {
             $mk_id = $_POST['mk_id'];
+            $mk_cpmk_ids = $_POST['mk_cpmk_id'];
+            $t1s = $_POST['t1'];
+            $t2s = $_POST['t2'];
+            $t3s = $_POST['t3'];
+            $p1s = $_POST['p1'];
+            $p2s = $_POST['p2'];
+
             try {
-                $stmt = $pdo->prepare("DELETE FROM sub_cpmk WHERE mk_id = ?");
-                $stmt->execute([$mk_id]);
-                $msg = "Seluruh rincian mingguan berhasil dihapus.";
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare("UPDATE mk_cpmk SET tugas1 = ?, tugas2 = ?, tugas3 = ?, proyek1 = ?, proyek2 = ? WHERE id = ?");
+                for ($i = 0; $i < count($mk_cpmk_ids); $i++) {
+                    $stmt->execute([$t1s[$i], $t2s[$i], $t3s[$i], $p1s[$i], $p2s[$i], $mk_cpmk_ids[$i]]);
+                }
+                $pdo->commit();
+                $msg = "Bobot Penilaian CPMK berhasil disimpan!";
             } catch (Exception $e) {
-                $error = "Gagal menghapus: " . $e->getMessage();
+                $pdo->rollBack();
+                $error = "Gagal menyimpan bobot: " . $e->getMessage();
             }
         }
     }
@@ -97,7 +109,12 @@ $mk_list = $mk_list->fetchAll(PDO::FETCH_ASSOC);
 function getMappingData($mk_id, $pdo) {
     $cpl = $pdo->prepare("SELECT c.* FROM cpl c JOIN mk_cpl m ON c.id = m.cpl_id WHERE m.mk_id = ?");
     $cpl->execute([$mk_id]);
-    $cpmk = $pdo->prepare("SELECT c.* FROM cpmk c JOIN mk_cpmk m ON c.id = m.cpmk_id WHERE m.mk_id = ?");
+    $cpmk = $pdo->prepare("
+        SELECT c.*, m.tugas1, m.tugas2, m.tugas3, m.proyek1, m.proyek2, m.id as mk_cpmk_id
+        FROM cpmk c 
+        JOIN mk_cpmk m ON c.id = m.cpmk_id 
+        WHERE m.mk_id = ?
+    ");
     $cpmk->execute([$mk_id]);
     $sub = $pdo->prepare("SELECT * FROM sub_cpmk WHERE mk_id = ? ORDER BY CAST(minggu AS UNSIGNED) ASC, id ASC");
     $sub->execute([$mk_id]);
@@ -299,6 +316,7 @@ function getMappingData($mk_id, $pdo) {
 </div>
 
 <div class="modal-overlay" id="modalInput">
+    <!-- ... existing input modal content ... -->
     <div class="modal-content" style="max-width: 1300px;">
         <div style="padding: 20px 24px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -336,6 +354,38 @@ function getMappingData($mk_id, $pdo) {
                     <button type="button" onclick="closeModal('modalInput')" style="padding: 12px 24px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; font-weight: 600; color: #64748b;">Batal</button>
                     <button type="submit" style="padding: 12px 32px; border-radius: 12px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);">Simpan Rincian</button>
                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modalBobot">
+    <div class="modal-content" style="max-width: 900px;">
+        <div style="padding: 20px 24px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0;">Edit Bobot Penilaian per CPMK</h3>
+            <button onclick="closeModal('modalBobot')" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;"><i class="fas fa-times"></i></button>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="action" value="save_bobot_penilaian">
+            <input type="hidden" name="mk_id" id="bobot-mk-id">
+            <div style="padding: 24px; background: white;">
+                <table class="table-modern">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th>CPMK</th>
+                            <th style="width: 80px; text-align: center;">Tugas 1</th>
+                            <th style="width: 80px; text-align: center;">Tugas 2</th>
+                            <th style="width: 80px; text-align: center;">Tugas 3</th>
+                            <th style="width: 80px; text-align: center;">Proyek 1</th>
+                            <th style="width: 80px; text-align: center;">Proyek 2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bobot-rows"></tbody>
+                </table>
+            </div>
+            <div style="padding: 20px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc;">
+                <button type="button" onclick="closeModal('modalBobot')" style="padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-weight: 600;">Batal</button>
+                <button type="submit" style="padding: 10px 30px; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer;">Simpan Bobot</button>
             </div>
         </form>
     </div>
@@ -425,12 +475,53 @@ function renderDetailView(data) {
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                 <div style="background: white; padding: 15px; border-radius: 16px; border: 1px solid var(--border);">
                                     <span style="font-size: 11px; font-weight: 800; color: var(--secondary); display: block; margin-bottom: 10px;">CPL TERKAIT</span>
-                                    ${data.mapping.cpl.length ? data.mapping.cpl.map(c => `<div style="padding: 8px; border-left: 3px solid var(--primary); background: #f1f5f9; border-radius: 4px; margin-bottom: 8px; font-size: 12px;"><strong>${c.kode_cpl}</strong>: ${c.deskripsi}</div>`).join('') : '<p style="font-size:12px; color:#94a3b8;">Belum ada.</p>'}
+                                    ${data.mapping.cpl.length ? data.mapping.cpl.map(c => `<div style="padding: 8px; border-left: 3px solid var(--primary); background: #f1f5f9; border-radius: 4px; margin-bottom: 8px; font-size: 11px;"><strong>${c.kode_cpl}</strong>: ${c.deskripsi}</div>`).join('') : '<p style="font-size:12px; color:#94a3b8;">Belum ada.</p>'}
                                 </div>
                                 <div style="background: white; padding: 15px; border-radius: 16px; border: 1px solid var(--border);">
                                     <span style="font-size: 11px; font-weight: 800; color: var(--secondary); display: block; margin-bottom: 10px;">CPMK TERKAIT</span>
-                                    ${data.mapping.cpmk.length ? data.mapping.cpmk.map(c => `<div style="padding: 8px; border-left: 3px solid var(--warning); background: #f1f5f9; border-radius: 4px; margin-bottom: 8px; font-size: 12px;"><strong>${c.kode_cpmk}</strong>: ${c.deskripsi}</div>`).join('') : '<p style="font-size:12px; color:#94a3b8;">Belum ada.</p>'}
+                                    ${data.mapping.cpmk.length ? data.mapping.cpmk.map(c => `<div style="padding: 8px; border-left: 3px solid var(--warning); background: #f1f5f9; border-radius: 4px; margin-bottom: 8px; font-size: 11px;"><strong>${c.kode_cpmk}</strong>: ${c.deskripsi}</div>`).join('') : '<p style="font-size:12px; color:#94a3b8;">Belum ada.</p>'}
                                 </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h4 style="font-size: 14px; font-weight: 700; color: var(--secondary); text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-chart-pie" style="color: var(--danger);"></i> Bobot Penilaian per CPMK
+                                </h4>
+                                <button onclick='openWeightModal(${JSON.stringify(data)})' class="badge-tag tag-blue" style="border: none; cursor: pointer; padding: 6px 12px; font-weight: 700;">
+                                    <i class="fas fa-edit"></i> Edit Bobot
+                                </button>
+                            </div>
+                            <div style="overflow-x: auto; border-radius: 16px; border: 1px solid var(--border); background: white;">
+                                <table class="table-modern" style="font-size: 12px;">
+                                    <thead>
+                                        <tr style="background: #f8fafc;">
+                                            <th>CPMK</th>
+                                            <th style="text-align: center;">T1</th>
+                                            <th style="text-align: center;">T2</th>
+                                            <th style="text-align: center;">T3</th>
+                                            <th style="text-align: center;">P1</th>
+                                            <th style="text-align: center;">P2</th>
+                                            <th style="text-align: center; font-weight: 800;">TOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.mapping.cpmk.length ? data.mapping.cpmk.map(c => {
+                                            const total = (parseInt(c.tugas1)||0) + (parseInt(c.tugas2)||0) + (parseInt(c.tugas3)||0) + (parseInt(c.proyek1)||0) + (parseInt(c.proyek2)||0);
+                                            return `
+                                            <tr>
+                                                <td style="font-weight: 700;">${c.kode_cpmk}</td>
+                                                <td style="text-align: center;">${c.tugas1}%</td>
+                                                <td style="text-align: center;">${c.tugas2}%</td>
+                                                <td style="text-align: center;">${c.tugas3}%</td>
+                                                <td style="text-align: center;">${c.proyek1}%</td>
+                                                <td style="text-align: center;">${c.proyek2}%</td>
+                                                <td style="text-align: center; font-weight: 800; color: ${total === 0 ? 'var(--danger)' : 'var(--success)'};">${total}%</td>
+                                            </tr>`;
+                                        }).join('') : '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">Belum ada CPMK.</td></tr>'}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -582,6 +673,29 @@ function addNewRow() {
     let nextNum = tbody.rows.length + 1;
     let index = Date.now(); // Use unique timestamp for new row radios
     addRow({minggu: nextNum, sub_cpmk: '', indikator: '', bentuk_asesmen: '', materi: '', metode: '', bobot: 2}, index);
+}
+
+function openWeightModal(data) {
+    document.getElementById('bobot-mk-id').value = data.id;
+    const tbody = document.getElementById('bobot-rows');
+    tbody.innerHTML = '';
+    
+    data.mapping.cpmk.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 700; font-size: 13px;">${c.kode_cpmk}
+                <input type="hidden" name="mk_cpmk_id[]" value="${c.mk_cpmk_id}">
+            </td>
+            <td><input type="number" name="t1[]" value="${c.tugas1 || 0}" class="form-control-custom" style="padding: 8px; text-align: center;"></td>
+            <td><input type="number" name="t2[]" value="${c.tugas2 || 0}" class="form-control-custom" style="padding: 8px; text-align: center;"></td>
+            <td><input type="number" name="t3[]" value="${c.tugas3 || 0}" class="form-control-custom" style="padding: 8px; text-align: center;"></td>
+            <td><input type="number" name="p1[]" value="${c.proyek1 || 0}" class="form-control-custom" style="padding: 8px; text-align: center;"></td>
+            <td><input type="number" name="p2[]" value="${c.proyek2 || 0}" class="form-control-custom" style="padding: 8px; text-align: center;"></td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    document.getElementById('modalBobot').style.display = 'flex';
 }
 
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
