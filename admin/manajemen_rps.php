@@ -3,19 +3,7 @@ require_once '../config/database.php';
 include 'includes/header.php';
 include 'includes/sidebar.php';
 
-// 1. Handle Status Update Actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
-    $id = $_POST['id'];
-    $new_status = ($_POST['action'] === 'approve') ? 'Approved' : 'Rejected';
-    
-    try {
-        $stmt = $pdo->prepare("UPDATE pengajuan_rps SET status = ? WHERE id = ?");
-        $stmt->execute([$new_status, $id]);
-        $_SESSION['msg'] = "Status RPS berhasil diperbarui menjadi $new_status.";
-    } catch (PDOException $e) {
-        $_SESSION['err'] = "Gagal memperbarui status: " . $e->getMessage();
-    }
-}
+// Admin role is now for monitoring only. Approval is handled by Kaprodi.
 
 // 2. Prepare Data Fetching with Filtering
 $filter_status = isset($_GET['status']) && $_GET['status'] !== 'Semua Status' ? $_GET['status'] : null;
@@ -25,7 +13,7 @@ $sql = "SELECT p.*, m.kode_mk, m.nama_mk, u.nama_lengkap as dosen_name
         FROM pengajuan_rps p
         JOIN mata_kuliah m ON p.mk_id = m.id
         JOIN users u ON p.dosen_id = u.id
-        WHERE 1=1";
+        WHERE p.status != 'Pending'"; // Admin only monitors finalized RPS
 
 if ($filter_status) {
     $sql .= " AND p.status = :status";
@@ -46,8 +34,8 @@ $submissions = $stmt->fetchAll();
 ?>
 
 <div class="page-header">
-    <h2>Manajemen RPS</h2>
-    <p>Monitoring dan approval Rencana Pembelajaran Semester (RPS) dari seluruh Dosen.</p>
+    <h2>Monitoring RPS</h2>
+    <p>Monitoring Rencana Pembelajaran Semester (RPS) yang telah ditinjau oleh Kaprodi.</p>
 </div>
 
 <?php if (isset($_SESSION['msg'])): ?>
@@ -118,17 +106,6 @@ $submissions = $stmt->fetchAll();
                             <td><?php echo date('d M Y', strtotime($row['tanggal_update'])); ?></td>
                             <td>
                                 <div class="table-actions" style="justify-content: flex-end;">
-                                    <?php if ($row['status'] === 'Pending'): ?>
-                                        <form method="POST" style="display: flex; gap: 8px;">
-                                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-primary btn-sm" title="Approve">
-                                                <i class="fas fa-check-circle"></i> Approve
-                                            </button>
-                                            <button type="submit" name="action" value="reject" class="btn btn-secondary btn-sm" title="Reject">
-                                                <i class="fas fa-times-circle"></i> Reject
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
                                     <button class="btn-icon-only" title="Lihat Detail"><i class="fas fa-search-plus"></i></button>
                                     <button class="btn-icon-only" title="Riwayat Revisi"><i class="fas fa-history"></i></button>
                                 </div>

@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
             $_SESSION['role'] = $user['role'];
             $_SESSION['prodi_id'] = $user['prodi_id'];
+            $_SESSION['jabatan'] = $user['jabatan'];
 
             // Redirect based on role
             if ($user['role'] === 'Admin') {
@@ -50,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="auth-container">
         <div class="auth-header">
+            <img src="../logo/logo-unsri.webp" alt="Logo Unsri" style="width: 80px; height: auto; margin-bottom: 20px;">
             <h1>Login RPS System</h1>
             <p>Silakan masuk menggunakan akun Anda</p>
         </div>

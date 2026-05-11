@@ -110,7 +110,7 @@ $rps_selesai = 85; // 85%
             </a>
             <a href="manajemen_rps.php" class="qa-item">
                 <i class="fas fa-check-double"></i>
-                <span>Approval RPS</span>
+                <span>Monitoring RPS</span>
             </a>
             <a href="laporan.php" class="qa-item">
                 <i class="fas fa-file-pdf"></i>

@@ -1,8 +1,8 @@
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <span>Kaprodi Panel</span>
+            <img src="../logo/logo-unsri.webp" alt="Logo Unsri" style="width: 42px; height: auto;">
+            <span>RPS System</span>
         </div>
     </div>
     
@@ -15,16 +15,13 @@
                 <a href="persetujuan_rps.php"><i class="fas fa-check-double"></i> <span>Persetujuan RPS</span></a>
             </li>
             <li class="<?php echo $active_page == 'manajemen' ? 'active' : ''; ?>">
-                <a href="manajemen.php"><i class="fas fa-file-invoice"></i> <span>Manajemen RPS</span></a>
+                <a href="manajemen.php"><i class="fas fa-file-alt"></i> <span>Manajemen RPS</span></a>
             </li>
             <li class="<?php echo $active_page == 'data_master' ? 'active' : ''; ?>">
-                <a href="data_master.php"><i class="fas fa-database"></i> <span>Data Master</span></a>
+                <a href="data_master.php"><i class="fas fa-layer-group"></i> <span>Data Master</span></a>
             </li>
             <li class="<?php echo $active_page == 'laporan&analitik' ? 'active' : ''; ?>">
                 <a href="laporan&analitik.php"><i class="fas fa-chart-line"></i> <span>Laporan & Analitik</span></a>
-            </li>
-            <li class="<?php echo $active_page == 'manajemen_dosen' ? 'active' : ''; ?>">
-                <a href="manajemen_dosen.php"><i class="fas fa-chalkboard-teacher"></i> <span>Manajemen Dosen</span></a>
             </li>
             <li class="<?php echo ($active_page == 'Profil' || $active_page == 'profil') ? 'active' : ''; ?>">
                 <a href="Profil.php"><i class="fas fa-user-gear"></i> <span>Profil</span></a>

@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Dosen') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dosen - RPS Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/dosen/layout.css">
+    <link rel="stylesheet" href="../css/dosen/layout.css?v=3.0">
     <?php
     $current_page = basename($_SERVER['PHP_SELF'], ".php");
     if (file_exists("../css/dosen/{$current_page}.css")) {

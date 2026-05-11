@@ -9,14 +9,15 @@ $prodi_id = $_SESSION['prodi_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'])) {
     $id = $_POST['id'];
     $new_status = ($_POST['action'] === 'approve') ? 'Approved' : 'Rejected';
+    $catatan = isset($_POST['catatan']) ? $_POST['catatan'] : null;
     
     try {
-        // Ensure the RPS belongs to a lecturer in the same prodi as the Kaprodi
+        // Ensure the RPS belongs to a mata kuliah in the same prodi as the Kaprodi
         $stmt = $pdo->prepare("UPDATE pengajuan_rps p
-                               JOIN users u ON p.dosen_id = u.id
-                               SET p.status = ? 
-                               WHERE p.id = ? AND u.prodi_id = ?");
-        $stmt->execute([$new_status, $id, $prodi_id]);
+                               JOIN mata_kuliah m ON p.mk_id = m.id
+                               SET p.status = ?, p.catatan_revisi = ? 
+                               WHERE p.id = ? AND m.prodi_id = ?");
+        $stmt->execute([$new_status, $catatan, $id, $prodi_id]);
         $_SESSION['msg'] = "Status RPS berhasil diperbarui menjadi $new_status.";
     } catch (PDOException $e) {
         $_SESSION['err'] = "Gagal memperbarui status: " . $e->getMessage();
@@ -24,11 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['id'
 }
 
 // 2. Fetch submissions for Kaprodi's Prodi
-$stmt = $pdo->prepare("SELECT p.*, m.kode_mk, m.nama_mk, u.nama_lengkap as dosen_name 
+$stmt = $pdo->prepare("SELECT p.*, m.kode_mk, m.nama_mk, d.nama as dosen_name 
                        FROM pengajuan_rps p
                        JOIN mata_kuliah m ON p.mk_id = m.id
-                       JOIN users u ON p.dosen_id = u.id
-                       WHERE u.prodi_id = ?
+                       JOIN dosen d ON m.dosen_id = d.id
+                       WHERE m.prodi_id = ?
                        ORDER BY p.tanggal_update DESC");
 $stmt->execute([$prodi_id]);
 $submissions = $stmt->fetchAll();
@@ -95,13 +96,25 @@ $submissions = $stmt->fetchAll();
                             <td><?php echo date('d M Y', strtotime($row['tanggal_update'])); ?></td>
                             <td>
                                 <div class="actions" style="justify-content: flex-end; display: flex; gap: 8px;">
-                                    <button class="btn-action primary" title="Tinjau"><i class="fas fa-search-plus"></i></button>
+                                    <button class="btn-action primary review-btn" 
+                                            data-id="<?php echo $row['id']; ?>" 
+                                            data-mk="<?php echo htmlspecialchars($row['nama_mk']); ?>"
+                                            title="Tinjau Isi RPS">
+                                        <i class="fas fa-search-plus"></i>
+                                    </button>
                                     <?php if ($row['status'] === 'Pending'): ?>
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                            <button type="submit" name="action" value="approve" class="btn-action success" title="Approve"><i class="fas fa-check"></i></button>
-                                            <button type="submit" name="action" value="reject" class="btn-action danger" title="Reject / Revisi"><i class="fas fa-times"></i></button>
+                                            <button type="submit" name="action" value="approve" class="btn-action success" title="Approve" onclick="return confirm('Setujui RPS ini?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
                                         </form>
+                                        <button class="btn-action danger revisi-btn" 
+                                                data-id="<?php echo $row['id']; ?>" 
+                                                data-mk="<?php echo htmlspecialchars($row['nama_mk']); ?>"
+                                                title="Tolak / Beri Catatan Revisi">
+                                            <i class="fas fa-times"></i>
+                                        </button>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -118,5 +131,103 @@ $submissions = $stmt->fetchAll();
         </table>
     </div>
 </div>
+
+<!-- Modal Revisi -->
+<div id="revisiModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Beri Catatan Revisi</h3>
+            <span class="close">&times;</span>
+        </div>
+        <form method="POST">
+            <input type="hidden" name="id" id="revisi_id">
+            <input type="hidden" name="action" value="reject">
+            <div class="form-group" style="margin-top: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Apa yang perlu diperbaiki pada RPS <span id="revisi_mk_name"></span>?</label>
+                <textarea name="catatan" class="form-control" rows="5" placeholder="Contoh: Deskripsi MK kurang detail, materi minggu ke-4 perlu diperbarui..." required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;"></textarea>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary close-modal">Batal</button>
+                <button type="submit" class="btn btn-danger" style="background: #ef4444; color: white;">Kirim Catatan Revisi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Review (Tinjau Isi) -->
+<div id="reviewModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>Review Isi RPS: <span id="review_mk_name"></span></h3>
+            <span class="close">&times;</span>
+        </div>
+        <div id="review_body" style="margin-top: 20px; max-height: 500px; overflow-y: auto;">
+            <!-- Content will be loaded here via AJAX -->
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin"></i> Memuat data...
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: white; margin: 5% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+.close { cursor: pointer; font-size: 24px; color: #94a3b8; }
+.btn-secondary { background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
+.btn-danger { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; }
+
+/* Table style for review content */
+.review-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+.review-table th, .review-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 13px; }
+.review-table th { background: #f8fafc; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const revisiModal = document.getElementById('revisiModal');
+    const reviewModal = document.getElementById('reviewModal');
+    
+    // Open Revisi Modal
+    document.querySelectorAll('.revisi-btn').forEach(btn => {
+        btn.onclick = function() {
+            document.getElementById('revisi_id').value = this.dataset.id;
+            document.getElementById('revisi_mk_name').innerText = this.dataset.mk;
+            revisiModal.style.display = 'block';
+        }
+    });
+
+    // Open Review Modal & Load Content
+    document.querySelectorAll('.review-btn').forEach(btn => {
+        btn.onclick = function() {
+            const id = this.dataset.id;
+            document.getElementById('review_mk_name').innerText = this.dataset.mk;
+            reviewModal.style.display = 'block';
+            document.getElementById('review_body').innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>';
+            
+            // Fetch RPS content via AJAX
+            fetch('api/get_rps_content.php?id=' + id)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('review_body').innerHTML = html;
+                });
+        }
+    });
+
+    // Close Modals
+    document.querySelectorAll('.close, .close-modal').forEach(el => {
+        el.onclick = function() {
+            revisiModal.style.display = 'none';
+            reviewModal.style.display = 'none';
+        }
+    });
+
+    window.onclick = function(event) {
+        if (event.target == revisiModal) revisiModal.style.display = 'none';
+        if (event.target == reviewModal) reviewModal.style.display = 'none';
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

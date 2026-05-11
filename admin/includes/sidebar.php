@@ -1,7 +1,7 @@
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
-            <i class="fas fa-university"></i>
+            <img src="../logo/logo-unsri.webp" alt="Logo Unsri" style="width: 47px; height: auto;">
             <span>RPS System</span>
         </div>
     </div>
@@ -15,16 +15,16 @@
                 <a href="manajemen_user.php"><i class="fas fa-users"></i> <span>Manajemen User</span></a>
             </li>
             <li class="<?php echo $active_page == 'data_master' ? 'active' : ''; ?>">
-                <a href="data_master.php"><i class="fas fa-database"></i> <span>Data Master</span></a>
+                <a href="data_master.php"><i class="fas fa-layer-group"></i> <span>Data Master</span></a>
             </li>
             <li class="<?php echo $active_page == 'manajemen_rps' ? 'active' : ''; ?>">
-                <a href="manajemen_rps.php"><i class="fas fa-file-contract"></i> <span>Manajemen RPS</span></a>
+                <a href="manajemen_rps.php"><i class="fas fa-file-invoice"></i> <span>Monitoring RPS</span></a>
             </li>
             <li class="<?php echo $active_page == 'laporan' ? 'active' : ''; ?>">
                 <a href="laporan.php"><i class="fas fa-chart-bar"></i> <span>Laporan & Analitik</span></a>
             </li>
             <li class="<?php echo $active_page == 'profil' ? 'active' : ''; ?>">
-                <a href="profil.php"><i class="fas fa-user-circle"></i> <span>Profil</span></a>
+                <a href="profil.php"><i class="fas fa-user-gear"></i> <span>Profil</span></a>
             </li>
         </ul>
     </nav>

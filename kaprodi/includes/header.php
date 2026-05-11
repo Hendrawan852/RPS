@@ -17,11 +17,13 @@ $active_page = basename($_SERVER['PHP_SELF'], ".php");
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Common Layout CSS -->
-    <link rel="stylesheet" href="../css/kaprodi/layout.css">
+    <link rel="stylesheet" href="../css/kaprodi/layout.css?v=3.0">
     <!-- Page Specific CSS -->
     <?php if (file_exists("../css/kaprodi/$active_page.css")): ?>
         <link rel="stylesheet" href="../css/kaprodi/<?php echo $active_page; ?>.css">
     <?php endif; ?>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="kaprodi-wrapper">

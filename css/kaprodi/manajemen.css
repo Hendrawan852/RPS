@@ -1,14 +1,95 @@
-.badge-approved { background: #dcfce7; color: #15803d; }
-.badge-archived { background: #f1f5f9; color: #475569; }
-
-.search-box input {
-    width: 250px;
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 13px;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
 }
 
-.actions { display: flex; gap: 10px; }
-.btn-icon { background: none; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
-.btn-icon:hover { color: var(--accent-color); }
+.search-container {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    padding: 2px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    width: 320px;
+}
+
+.search-container i {
+    color: var(--text-muted);
+}
+
+.search-container input {
+    border: none;
+    padding: 10px 0;
+    width: 100%;
+    font-size: 14px;
+    background: transparent;
+    outline: none;
+}
+
+.mk-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mk-info code {
+    font-size: 11px;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #64748b;
+    width: fit-content;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.btn-action.primary { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.btn-action.success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.btn-action.info { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    filter: brightness(0.95);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+@media (max-width: 992px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .search-container {
+        width: 100%;
+    }
+}

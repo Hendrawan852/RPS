@@ -3,7 +3,15 @@ require_once '../config/database.php';
 include 'includes/header.php';
 include 'includes/sidebar.php';
 
-$dosen_id = $_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT nip_nidn FROM users WHERE id = ?");
+$stmt->execute([$user_id]);
+$user_nip = $stmt->fetchColumn() ?: '';
+
+// Find internal dosen_id from the central 'dosen' table using NIP
+$stmt = $pdo->prepare("SELECT id FROM dosen WHERE nip = ?");
+$stmt->execute([$user_nip]);
+$internal_dosen_id = $stmt->fetchColumn() ?: 0;
 
 // Fetch RPS submissions for this lecturer
 $stmt = $pdo->prepare("SELECT p.*, m.kode_mk, m.nama_mk 
@@ -11,17 +19,15 @@ $stmt = $pdo->prepare("SELECT p.*, m.kode_mk, m.nama_mk
                        JOIN mata_kuliah m ON p.mk_id = m.id
                        WHERE p.dosen_id = ?
                        ORDER BY p.tanggal_update DESC");
-$stmt->execute([$dosen_id]);
+$stmt->execute([$user_id]);
 $submissions = $stmt->fetchAll();
 ?>
 
 <div class="page-header">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h2>Daftar RPS Saya</h2>
             <p>Kelola dan pantau status seluruh Rencana Pembelajaran Semester yang telah Anda buat.</p>
         </div>
-        <a href="buat_rps_baru.php" class="btn btn-primary"><i class="fas fa-plus"></i> Buat RPS Baru</a>
     </div>
 </div>
 
@@ -78,6 +84,12 @@ $submissions = $stmt->fetchAll();
                                 <span class="badge badge-<?php echo strtolower($row['status']); ?>">
                                     <?php echo $row['status']; ?>
                                 </span>
+                                <?php if ($row['status'] === 'Rejected' && !empty($row['catatan_revisi'])): ?>
+                                    <div class="revision-note" style="margin-top: 5px; font-size: 11px; color: #ef4444; background: rgba(239, 68, 68, 0.05); padding: 5px 8px; border-radius: 4px; border-left: 2px solid #ef4444;">
+                                        <i class="fas fa-exclamation-circle"></i> <strong>Koreksi Prodi:</strong><br>
+                                        <?php echo htmlspecialchars($row['catatan_revisi']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td><?php echo date('d M Y', strtotime($row['tanggal_update'])); ?></td>
                             <td>

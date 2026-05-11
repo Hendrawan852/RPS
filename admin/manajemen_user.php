@@ -116,7 +116,7 @@ $users = $stmt->fetchAll();
 <div class="card">
     <div class="card-title"> Daftar Pengguna </div>
     <div class="table-responsive">
-        <table class="table">
+        <table class="custom-table">
             <thead>
                 <tr>
                     <th>NO</th>

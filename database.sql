@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     prodi_id INT NOT NULL,
     role ENUM('Dosen', 'Kaprodi', 'Admin') DEFAULT 'Dosen',
+    jabatan VARCHAR(100) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (prodi_id) REFERENCES prodi(id)
 );
