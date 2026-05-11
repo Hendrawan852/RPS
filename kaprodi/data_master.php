@@ -1,44 +1,75 @@
 <?php
 require_once '../config/database.php';
-include 'includes/header.php';
-include 'includes/sidebar.php';
 
-$prodi_id = $_SESSION['prodi_id'] ?? 1;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Action Handler
+// Always read prodi_id fresh from the database
+$stmt = $pdo->prepare("SELECT prodi_id FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id'] ?? 0]);
+$prodi_id = $stmt->fetchColumn();
+
+// Action Handler (Moved up for better execution flow)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        $action = $_POST['action'];
-        
-        if ($action === 'pilih_dosen') {
-            $id = $_POST['id'];
-            $pdo->prepare("UPDATE dosen SET prodi_id = ? WHERE id = ?")->execute([$prodi_id, $id]);
-            $msg = "Dosen berhasil ditambahkan.";
-        } elseif ($action === 'lepas_dosen') {
-            $id = $_POST['id'];
-            $pdo->prepare("UPDATE mata_kuliah SET dosen_id = NULL WHERE dosen_id = ? AND prodi_id = ?")->execute([$id, $prodi_id]);
-            $pdo->prepare("UPDATE dosen SET prodi_id = NULL WHERE id = ?")->execute([$id]);
-            $msg = "Dosen berhasil dilepas.";
-        } elseif ($action === 'tambah_mk_assignment') {
-            $mk_id = $_POST['mk_id'];
-            $dosen_id = $_POST['dosen_id'] ?: null;
-            $pdo->prepare("UPDATE mata_kuliah SET prodi_id = ?, dosen_id = ? WHERE id = ?")->execute([$prodi_id, $dosen_id, $mk_id]);
-            $msg = "Mata kuliah & dosen berhasil dipetakan.";
-        } elseif ($action === 'update_dosen_mk') {
-            $assignments = $_POST['assignments'] ?? [];
-            foreach ($assignments as $mk_id => $dosen_id) {
-                $d_id = $dosen_id ?: null;
-                $stmt = $pdo->prepare("UPDATE mata_kuliah SET dosen_id = ?, prodi_id = ? WHERE id = ? AND (prodi_id = ? OR prodi_id IS NULL)");
-                $stmt->execute([$d_id, $prodi_id, $mk_id, $prodi_id]);
+    $action = $_POST['action'] ?? '';
+    $success = false;
+    $msg = "";
+    
+    if (!$prodi_id) {
+        $msg = "Akun Kaprodi belum terhubung dengan Prodi.";
+    } else {
+        try {
+            if ($action === 'pilih_dosen') {
+                $id = $_POST['id'];
+                $stmt = $pdo->prepare("UPDATE dosen SET prodi_id = ? WHERE id = ?");
+                $success = $stmt->execute([$prodi_id, $id]);
+                $msg = "Dosen berhasil ditambahkan.";
+            } elseif ($action === 'lepas_dosen') {
+                $id = $_POST['id'];
+                $pdo->prepare("UPDATE mata_kuliah SET dosen_id = NULL WHERE dosen_id = ? AND prodi_id = ?")->execute([$id, $prodi_id]);
+                $stmt = $pdo->prepare("UPDATE dosen SET prodi_id = NULL WHERE id = ?");
+                $success = $stmt->execute([$id]);
+                $msg = "Dosen berhasil dilepas.";
+            } elseif ($action === 'update_dosen_mk') {
+                $assignments = $_POST['assignments'] ?? [];
+                foreach ($assignments as $mk_id => $dosen_id) {
+                    $d_id = $dosen_id ?: null;
+                    $stmt = $pdo->prepare("UPDATE mata_kuliah SET dosen_id = ?, prodi_id = ? WHERE id = ?");
+                    $stmt->execute([$d_id, $prodi_id, $mk_id]);
+                }
+                $success = true;
+                $msg = "Semua perubahan pengampu berhasil disimpan.";
+            } elseif ($action === 'tambah_mk_assignment') {
+                $mk_id = $_POST['mk_id'];
+                $dosen_id = $_POST['dosen_id'] ?: null;
+                $stmt = $pdo->prepare("UPDATE mata_kuliah SET prodi_id = ?, dosen_id = ? WHERE id = ?");
+                $success = $stmt->execute([$prodi_id, $dosen_id, $mk_id]);
+                $msg = "Mata kuliah & dosen berhasil dipetakan.";
+            } elseif ($action === 'lepas_mk') {
+                $id = $_POST['id'];
+                $stmt = $pdo->prepare("UPDATE mata_kuliah SET prodi_id = NULL, dosen_id = NULL WHERE id = ?");
+                $success = $stmt->execute([$id]);
+                $msg = "Mata kuliah berhasil dilepas.";
             }
-            $msg = "Semua perubahan pengampu berhasil disimpan.";
-        } elseif ($action === 'lepas_mk') {
-            $id = $_POST['id'];
-            $pdo->prepare("UPDATE mata_kuliah SET prodi_id = NULL, dosen_id = NULL WHERE id = ?")->execute([$id]);
-            $msg = "Mata kuliah berhasil dilepas.";
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
         }
     }
+
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => $success, 'message' => $msg]);
+        exit;
+    }
 }
+
+if (!$prodi_id && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    die("Error: Akun Kaprodi Anda belum terhubung dengan Program Studi. Silakan hubungi Admin.");
+}
+
+include 'includes/header.php';
+include 'includes/sidebar.php';
 
 // Fetch Data
 $prodi_info = $pdo->prepare("SELECT nama_prodi FROM prodi WHERE id = ?");
@@ -366,11 +397,7 @@ function getMappingData($mk_id, $pdo) {
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 8px; justify-content: flex-end;">
                             <button class="btn-action btn-blue" title="Info Penugasan" onclick='openInfo("Dosen", <?php echo json_encode($d); ?>)'><i class="fas fa-eye"></i></button>
-                            <form method="POST" onsubmit="return confirm('Lepas dosen?')">
-                                <input type="hidden" name="id" value="<?php echo $d['id']; ?>">
-                                <input type="hidden" name="action" value="lepas_dosen">
-                                <button type="submit" class="btn-action btn-red"><i class="fas fa-user-minus"></i></button>
-                            </form>
+                            <button type="button" class="btn-action btn-red" title="Lepas Dosen" onclick="lepasDosen(<?php echo $d['id']; ?>)"><i class="fas fa-user-minus"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -461,12 +488,8 @@ function getMappingData($mk_id, $pdo) {
                     </td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 5px; justify-content: flex-end;">
-                            <button class="btn-action btn-blue" onclick='openInfo("MK", <?php echo json_encode($mk); ?>)'><i class="fas fa-eye"></i></button>
-                            <form method="POST" onsubmit="return confirm('Lepas MK?')">
-                                <input type="hidden" name="id" value="<?php echo $mk['id']; ?>">
-                                <input type="hidden" name="action" value="lepas_mk">
-                                <button type="submit" class="btn-action btn-red"><i class="fas fa-trash"></i></button>
-                            </form>
+                            <button type="button" class="btn-action btn-blue" onclick='openInfo("MK", <?php echo json_encode($mk); ?>)'><i class="fas fa-eye"></i></button>
+                            <button type="button" class="btn-action btn-red" onclick="lepasMK(<?php echo $mk['id']; ?>)"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -689,23 +712,28 @@ if (bulkForm) {
         
         const formData = new FormData(this);
         
-        fetch('data_master.php', {
+        if (!formData.get('action')) formData.append('action', 'update_dosen_mk');
+        
+        fetch('ajax_data_master.php', {
             method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            body: formData
         })
-        .then(response => response.text())
-        .then(html => {
-            btn.innerHTML = '<i class="fas fa-check-circle"></i> Berhasil!';
-            btn.style.background = '#059669';
-            
-            // Update initial values and indicators
-            this.querySelectorAll('select[name^="assignments"]').forEach(select => {
-                select.dataset.initial = select.value;
-                updateIndicators(select);
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Berhasil!';
+                btn.style.background = '#059669';
+                
+                // Update initial values and indicators
+                this.querySelectorAll('select[name^="assignments"]').forEach(select => {
+                    select.dataset.initial = select.value;
+                    updateIndicators(select);
+                });
+            } else {
+                alert('Gagal menyimpan: ' + data.message);
+                btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Gagal';
+                btn.style.background = '#ef4444';
+            }
             
             setTimeout(() => {
                 btn.disabled = false;
@@ -714,8 +742,15 @@ if (bulkForm) {
             }, 3000);
         })
         .catch(error => {
-            console.error('Error:', error);
-            btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Gagal';
+            console.error('AJAX Error:', error);
+            // Try to get more info
+            fetch('ajax_data_master.php', { method: 'POST', body: formData })
+                .then(r => r.text())
+                .then(txt => {
+                    console.log('Raw server response:', txt);
+                    alert('Error server. Cek console browser untuk detail.\n\nResponse: ' + txt.substring(0, 200));
+                });
+            btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
             btn.style.background = '#ef4444';
             setTimeout(() => {
                 btn.disabled = false;
@@ -748,6 +783,42 @@ window.addEventListener('load', () => {
         if (btn) btn.click();
     }
 });
+// Action functions
+function lepasMK(id) {
+    if (!confirm('Lepas mata kuliah ini dari prodi?')) return;
+    
+    fetch('ajax_data_master.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=lepas_mk&id=${id}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function lepasDosen(id) {
+    if (!confirm('Lepas dosen ini dari prodi? Semua penugasan mata kuliahnya akan dihapus.')) return;
+    
+    fetch('ajax_data_master.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=lepas_dosen&id=${id}`
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
 </script>
 
 <?php include 'includes/footer.php'; ?>
